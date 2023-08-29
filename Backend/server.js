@@ -4,10 +4,17 @@ const oauth = require("./Routes/oauth")
 const blog  = require("./Routes/blog")
 const mongoose = require("mongoose");
 const app = express();
-
+const cors = require("cors");
+// app.use(cors());
 app.use(express.json());
 
-//CORS Policy
+// const corsOptions = {
+//   origin: 'http://localhost:3000', // Allow requests from this origin
+// };
+
+// app.use(cors(corsOptions));
+// CORS Policy
+
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(

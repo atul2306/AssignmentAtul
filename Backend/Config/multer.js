@@ -11,15 +11,18 @@ const MIME_TYPE_MAP = {
 };
 
 module.exports = multer({
-    limits: 500000, // 5mb
+    limits: 5000000000, // 50mb
     storage: multer.diskStorage({
         filename: (req, file, cb) => {
             const ext = MIME_TYPE_MAP[file.mimetype];
+
+    
             cb(null, uuid() + "." + ext);
         },
     }),
     fileFilter: (req, file, cb) => {
         const isValid = !!MIME_TYPE_MAP[file.mimetype];
+        console.log(" isValid:", isValid);
         let error = isValid ? null : new Error("Invalid file type!");
         cb(error, isValid);
     },

@@ -26,31 +26,6 @@ const userSchema = new mongoose.Schema({
         ref: "Post", 
       },
     ],
-    // followers: [
-    //   {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: "User",
-    //   },
-    // ],
-    // following: [
-    //   {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: "User",
-    //   },
-    // ],
-    // friends:[
-    //   {
-    //     conversationId: String,
-    //      friendid: String,
-    //      friendname: String,
-    //       friendavatar: String,
-    //   }
-    // ],
-    // secretToken: String,
-    // resetPasswordToken: String,
-    // resetPasswordExpires: Date,
-  
- 
 });
 
 

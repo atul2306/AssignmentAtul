@@ -2,18 +2,25 @@ const Blog = require("../model/BlogPost");
 const User = require("../model/User");
 const Cloudinary = require("../Config/Cloudinary");
 
+
+
+
 module.exports.blog_add_controller = async (req, res) => {
   try {
-    const { id, title, description } = req.body;
+    
+    const { id, title, description , media } = req.body;
     const { path } = req.file;
+
+    
     const image = await Cloudinary.uploader.upload(path, {
+      
       folder: "BLOG",
       use_filename: true,
     });
     const user = await User.findById(id);
-
     const newPost = {
       caption: title,
+      description,
       image: {
         public_id: image.public_id,
         url: image.url,
@@ -21,14 +28,14 @@ module.exports.blog_add_controller = async (req, res) => {
       owner: id,
     };
 
-    const postCreate = await Post.create(newPost);
-
+    const postCreate = await Blog.create(newPost);
+    
     user.posts.push(postCreate._id);
 
     await user.save();
 
     res.status(201).json({
-      success: true,
+      ok: true,
       message: "Post Created",
     });
   } catch (err) {
@@ -38,19 +45,20 @@ module.exports.blog_add_controller = async (req, res) => {
 
 module.exports.Updateblogtitle = async (req, res) => {
   try {
-    const user = await User.findById(req.body.id);
-      const id = req.params.id;
-    if (user.posts.includes(id)) {
-      const post = await Blog.findById(id);
-      post.caption = req.body.title;
+    const { userid, postid ,newTitle} = req.body
+    const user = await User.findById(userid);
+
+    if (user.posts.includes(postid)) {
+      const post = await Blog.findById(postid);
+      post.caption = req.body.newTitle;
       await post.save();
       return res.status(200).json({
-        success: true,
+        ok: true,
         message: "Title Updated",
       });
     } else {
       return res.status(400).json({
-        success: false,
+        ok: false,
         message: "you cant Update",
       });
     }
@@ -61,19 +69,20 @@ module.exports.Updateblogtitle = async (req, res) => {
 
 module.exports.UpdateblogDescription = async (req, res) => {
     try {
-      const user = await User.findById(req.body.id);
-        const id = req.params.id;
-      if (user.posts.includes(id)) {
-        const post = await Blog.findById(id);
-        post.description = req.body.description;
+    const { userid, postid ,newDescription} = req.body
+
+      const user = await User.findById(userid);
+      if (user.posts.includes(postid)) {
+        const post = await Blog.findById(postid);
+        post.description = req.body.newDescription;
         await post.save();
         return res.status(200).json({
-          success: true,
+          ok: true,
           message: "description Updated",
         });
       } else {
         return res.status(400).json({
-          success: false,
+          ok: false,
           message: "you cant Update",
         });
       }
@@ -83,71 +92,40 @@ module.exports.UpdateblogDescription = async (req, res) => {
   };
 
 
-//   module.exports.UpdatePhotoDescription = async (req, res) => {
-//     try {
-//       const user = await User.findById(req.body.id);
-//         const id = req.params.id;
-//       if (user.posts.includes(id)) {
-//         const post = await Blog.findById(id);
-//         post.description = req.body.description;
-//         await post.save();
-//         return res.status(200).json({
-//           success: true,
-//           message: "description Updated",
-//         });
-//       } else {
-//         return res.status(400).json({
-//           success: false,
-//           message: "you cant Update",
-//         });
-//       }
-//     } catch (err) {
-//       console.log(err);
-//     }
-//   };
 
 
 module.exports.DeleteBlog = async (req, res) => {
     try {
-      const query = req.params.query;
-      const arr = query.split(",");
-      const postid = arr[0];
-      const userid = arr[1];
-      //  console.log(postid,userid)
+     
+      const { userid,postid} = req.body
       const post = await Blog.findById(postid);
-      // console.log(post)
       if (!post) {
         return res.status(400).json({
-          success: false,
+          ok: false,
           message: "Post Not Found",
         });
       }
-      // const user= await User.findById(post.owner);
-      // console.log(post.owner)
-      // console.log(userid)
-      //  console.log(post.owner!= userid)
       if (post.owner != userid) {
         return res.status(400).json({
-          success: false,
+          ok: false,
           message: "Unauthorised",
         });
       }
-      await post.remove(); // post deleted from the model
-  
+      await post.deleteOne(); // post deleted from the model
       const user = await User.findById(userid);
-  
       const index = user.posts?.indexOf(postid);
-  
+      console.log({user,index});
+      
       if (index) {
         user.posts?.splice(index, 1);
         await user.save();
         return res.status(202).json({
-          success: true,
+          ok: true,
           message: "POST DELETED",
         });
       } else {
         return res.status(400).json({
-          success: false,
+          ok: false,
           message: "some error Found",
         });
       }
@@ -158,15 +136,12 @@ module.exports.DeleteBlog = async (req, res) => {
 
   module.exports.likeAndUnlikeBlog = async (req, res) => {
     try {
-      const query = req.params.query;
-      const arr = query.split(",");
-      const postid = arr[0];
-      const userid = arr[1];
+      const { userid,postid} = req.body
   
       const post = await Blog.findById(postid);
       if (!post) {
         return res.status(400).json({
-          success: false,
+          ok: false,
           message: "Post Not Found",
         });
       }
@@ -175,7 +150,7 @@ module.exports.DeleteBlog = async (req, res) => {
         post.likes.splice(index, 1);
         await post.save();
         return res.status(200).json({
-          success: true,
+          ok: true,
           post: post.likes,
           message: "POST DISLIKED",
         });
@@ -183,7 +158,7 @@ module.exports.DeleteBlog = async (req, res) => {
         post.likes.push(userid);
         await post.save();
         return res.status(200).json({
-          success: true,
+          ok: true,
           post: post.likes,
           message: "POST LIKED",
         });
@@ -199,14 +174,14 @@ module.exports.DeleteBlog = async (req, res) => {
       const { postid, userid, comment } = req.body;
       if (!postid || !userid || !comment) {
         return res.status(400).json({
-          success: false,
+          ok: false,
           message: "Enter comment",
         });
       }
       const post = await Blog.findById(postid);
       if (!post) {
         return res.status(400).json({
-          success: false,
+          ok: false,
           message: "post not found",
         });
       }
@@ -222,12 +197,26 @@ module.exports.DeleteBlog = async (req, res) => {
         });
         await post.save();
       }
-  
       return res.status(200).json({
-        success: true,
+        ok: true,
         message: "comment added",
+        comments:post.comments
       });
     } catch (err) {
       console.log(err);
     }
   };
+
+  module.exports.getAllBlog = async (req, res, next) => {
+    try {
+      const blog = await Blog.find();
+      // console.log(post);
+      return res.status(200).json({
+        ok: true,
+        blog,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  
